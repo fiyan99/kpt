@@ -1,18 +1,19 @@
-# Multiplikasi Matriks Paralel Menggunakan MPI4Py + Antarmuka Web Streamlit
+# Analisis & Benchmark Multiplikasi Matriks Paralel (MPI4Py + Streamlit Visualization)
 
 ## 📌 Gambaran Proyek
 
-Proyek ini mengimplementasikan **Multiplikasi Matriks Paralel**
-menggunakan **MPI4Py**, dengan model Master--Worker.\
-Selain itu, ditambahkan **Antarmuka Web Streamlit** untuk menjalankan
-MPI melalui web dan menampilkan hasilnya secara interaktif.
+Proyek ini adalah implementasi Sistem Komputasi Paralel untuk operasi multiplikasi matriks menggunakan MPI (Message Passing Interface).
 
-Proyek ini dikembangkan untuk **UAS Komputasi Paralel & Terdistribusi**,
-dan telah memenuhi seluruh komponen yang diwajibkan: - Paralelisme -
-Latency - Komunikasi antar node - Compile & Runtime Information -
-Distribusi beban kerja - Fault-tolerance (dasar) - Pengujian
-skalabilitas (2, 4, 8, 16 proses) - Evaluasi throughput, speedup, dan
-efisiensi - Implementasi tambahan berbasis Web
+Berbeda dengan implementasi MPI standar yang hanya berbasis terminal, proyek ini dilengkapi dengan Dashboard Analitik Berbasis Web (Streamlit) yang berfungsi untuk:
+1. Visualisasi Overhead: Membedah waktu eksekusi menjadi Scatter, Compute, dan Gather menggunakan grafik interaktif (Stacked Bar Chart).
+2. Benchmark Otomatis: Menguji skalabilitas program (Speedup & Efficiency) dengan menjalankan simulasi multi-proses secara otomatis.
+3. Cross-Platform Support: Mendukung eksekusi di Linux/WSL maupun Windows (dengan penanganan oversubscribe manual).
+
+Proyek ini dikembangkan untuk memenuhi komponen penilaian UAS Komputasi Paralel & Terdistribusi:
+- Paralelisme Master-Worker
+- Pengukuran Latency & Throughput
+- Analisis Skalabilitas (Amdahl's Law)
+- Visualisasi Data Real-time
 
 ------------------------------------------------------------------------
 
@@ -20,152 +21,105 @@ efisiensi - Implementasi tambahan berbasis Web
 
     hpc-matrix-parallel/
     │
-    ├── parallel_matrix.py     # Program utama MPI
-    ├── web_app.py             # Antarmuka Web Streamlit
-    ├── README.md              # Dokumentasi
-    └── .venv/                 # Virtual environment (tidak disertakan)
+    ├── parallel_matrix.py     # Backend: Core logic MPI (Master-Worker)
+    ├── web_app.py             # Frontend: Dashboard Streamlit & Visualisasi
+    ├── README_ID.md           # Dokumentasi Proyek
+    └── .venv/                 # Virtual Environment
 
 ------------------------------------------------------------------------
 
-## ⚙️ Instalasi Dependensi
+## ⚙️ Instalasi & Persiapan
 
-### 1️⃣ Install OpenMPI (Level Sistem)
+### 1. Prasyarat Sistem
+Pastikan MPI sudah terinstall di sistem operasi Anda:
+- Linux/WSL: sudo apt install openmpi-bin libopenmpi-dev
+- Windows: Install MS-MPI (v10.0 atau terbaru).
 
-``` bash
-sudo apt update
-sudo apt install openmpi-bin libopenmpi-dev -y
-```
+### 2. Instalasi Library Python
+Gunakan virtual environment agar terisolasi.
 
-### 2️⃣ Buat dan Aktifkan Virtual Environment
+   # Buat dan aktifkan venv
+   python -m venv .venv
+   
+   # Windows:
+   source .venv/Scripts/activate
+   # Linux/Mac:
+   source .venv/bin/activate
 
-``` bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-### 3️⃣ Install Library Python
-
-``` bash
-pip install mpi4py numpy streamlit
-```
-
-------------------------------------------------------------------------
-
-## ▶️ Menjalankan Program MPI Secara Manual
-
-``` bash
-mpiexec --oversubscribe -n 4 python parallel_matrix.py
-```
-
-Ganti angka `4` dengan: - 2 (baseline) - 4 (optimal) - 8
-(oversubscribe) - 16 (stress test)
+   # Install dependensi (Wajib install pandas & altair untuk grafik)
+   pip install mpi4py numpy streamlit pandas altair
 
 ------------------------------------------------------------------------
 
-## 🌐 Menjalankan Aplikasi Web Streamlit
+## 🚀 Cara Menjalankan Aplikasi
 
-Di dalam venv aktif:
+Anda memiliki dua opsi untuk menjalankan proyek ini:
 
-``` bash
-streamlit run web_app.py
-```
+### Opsi A: Melalui Dashboard Web (Direkomendasikan)
+Gunakan cara ini untuk mendapatkan pengalaman visual penuh (grafik & benchmark otomatis).
 
-Akses melalui browser:
+   # Pastikan virtual environment aktif, lalu jalankan:
+   python -m streamlit run web_app.py
 
-    http://localhost:8501
+   (Aplikasi akan terbuka otomatis di browser Anda di http://localhost:8501)
 
-------------------------------------------------------------------------
+### Opsi B: Menjalankan Backend MPI Saja (Manual)
+Gunakan cara ini jika Anda hanya ingin melihat output teks mentah di terminal tanpa antarmuka web.
 
-## 🧠 Penjelasan Konsep Web
-
-Antarmuka web **tidak menjalankan MPI di browser**, tetapi:
-
-1.  Pengguna memilih jumlah proses MPI.
-
-2.  Backend Streamlit menjalankan:
-
-    ``` bash
-    mpiexec --oversubscribe -n X python parallel_matrix.py
-    ```
-
-3.  Output (latency, scatter, compute, gather) ditangkap.
-
-4.  Output ditampilkan kembali ke web.
-
-### 🔧 Teknologi yang Digunakan
-
-  Komponen            Teknologi
-  ------------------- -------------------
-  Komputasi Paralel   OpenMPI, MPI4Py
-  Operasi Matriks     Numpy
-  Antarmuka Web       Streamlit
-  Eksekusi Backend    Python subprocess
-  Eksekusi Paralel    mpiexec
+   # Contoh menjalankan dengan 4 proses
+   mpiexec -n 4 python parallel_matrix.py
 
 ------------------------------------------------------------------------
 
-## 📊 Deskripsi Output
+## 📊 Panduan Fitur Dashboard
 
-Program akan menampilkan hasil pengujian multiplikasi matriks:
+Dashboard aplikasi ini dibagi menjadi dua tab utama dengan fungsi berbeda:
 
-    >>> Menguji chunk size: 256 baris per proses
-    Scatter Latency   : 0.02 detik
-    Compute Time      : 1.12 detik
-    Gather Latency    : 0.03 detik
+### 1. Tab "Single Run" (Analisis Detail)
+Digunakan untuk satu kali pengujian mendalam.
+- Input: Geser slider untuk memilih jumlah proses.
+- Checkbox "Paksa Oversubscribe":
+  * Windows: Jangan centang (biarkan kosong).
+  * Linux/WSL: Centang jika jumlah proses > jumlah core CPU laptop Anda.
+- Output:
+  * Grafik Stacked Bar: Memvisualisasikan porsi waktu Scatter (kirim), Compute (hitung), dan Gather (terima).
+  * Ringkasan Angka: Rata-rata waktu eksekusi dalam detik.
+  * Terminal Log: Output asli dari MPI untuk verifikasi data.
 
-    >>> Menguji chunk size: 512 baris per proses
-    ...
-
-Setiap pengujian memberikan: - Latency broadcast - Latency scatter -
-Waktu komputasi lokal - Latency gather - Validasi chunk terlalu besar
-(jika terjadi)
-
-Data ini digunakan untuk analisis: - Speedup - Efisiensi -
-Skalabilitas - Throughput
-
-------------------------------------------------------------------------
-
-## 📈 Catatan Skalabilitas
-
-Berdasarkan pengujian:
-
-  Jumlah Proses   Hasil
-  --------------- -----------------------------------
-  **2**           Performa baik
-  **4**           Optimal
-  **8**           Terjadi oversubscribe penalty
-  **16**          Performa turun drastis (expected)
-
-Chunk besar (1024) tidak valid ketika baris per proses \< 1024.
+### 2. Tab "Scalability Benchmark" (Uji Skalabilitas)
+Digunakan untuk pembuktian konsep paralelisme secara otomatis.
+- Cara Kerja: Klik tombol "Mulai Benchmark", sistem akan otomatis menjalankan simulasi berurutan (2, 4, dan 8 proses).
+- Output:
+  * Grafik Waktu Eksekusi: Menunjukkan tren penurunan waktu saat proses ditambah (Lower is Better).
+  * Grafik Speedup: Menunjukkan seberapa kali lipat program lebih cepat dibanding baseline (Higher is Better).
 
 ------------------------------------------------------------------------
 
-## 🌐 Preview Antarmuka Web
+## 🛠️ Troubleshooting & Catatan Teknis
 
-Antarmuka Web menampilkan: - Input jumlah proses - Tombol "RUN MPI" -
-Output realtime dari proses MPI
+### Mengatasi Error "Bad Termination" / "Oversubscribe"
+Jika Anda menemukan error saat menjalankan program dengan jumlah proses yang banyak (misal 8 proses), perhatikan sistem operasi Anda:
 
-------------------------------------------------------------------------
+* Pengguna Windows (MS-MPI):
+  MS-MPI di Windows biasanya TIDAK mendukung flag '--oversubscribe'.
+  > Solusi: Di dashboard web, pastikan checkbox "Paksa Oversubscribe" TIDAK DICENTANG. Kode program telah dirancang untuk menangani ini.
 
-## 📝 Catatan UAS (Kesesuaian)
+* Pengguna Linux / WSL (OpenMPI):
+  OpenMPI membatasi jumlah proses sesuai jumlah core fisik CPU secara default.
+  > Solusi: Jika Anda ingin mensimulasikan 8 proses di laptop 4 core, Anda WAJIB MENCENTANG checkbox "Paksa Oversubscribe".
 
-Proyek ini memenuhi:
-
--   Implementasi paralelisme\
--   Penggunaan MPI (Master--Worker)\
--   Pengukuran latency dan throughput\
--   Pembagian beban kerja (chunking)\
--   Analisis skalabilitas\
--   Fault tolerance (dasar)\
--   Dokumentasi\
--   Antarmuka web sebagai tambahan nilai plus
+### Arsitektur Sistem
+- Backend: Python (mpi4py, numpy)
+- Frontend: Streamlit (pandas, altair)
+- Komunikasi: Menggunakan metode Scatter (distribusi data) dan Gather (pengumpulan hasil).
+- Data: Matriks random float64 ukuran 4096 x 4096.
 
 ------------------------------------------------------------------------
 
 ## 👨‍💻 Pengembang
 
-**Kelompok 3 Kelas C**\
-Mahasiswa Teknik Informatika\
+Kelompok 3 Kelas C
+Mahasiswa Teknik Informatika
 UAS Komputasi Paralel & Terdistribusi
 
 ------------------------------------------------------------------------
